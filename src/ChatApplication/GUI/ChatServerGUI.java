@@ -1,11 +1,11 @@
 package ChatApplication.GUI;//
 
-import ChatApplication.GUI.Socket.ChatServer;
+import ChatApplication.Network.ChatServer;
+import ChatApplication.Global;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
@@ -31,20 +31,37 @@ public class ChatServerGUI extends Application
 
     private void runServer()
     {
+//        new Thread(() ->
+//        {
+            try
+            {
+                server = new ChatServer(Global.PORT);
+                server.startServer();
+                //appendToLog("Started Server");
+                server.startReceivingAsync();
+                //appendToLog("Ready to Receive clients");
+                //appendToLog(server.getClient().getLocalAddress().getHostAddress());
+            }
+            catch (IOException ex)
+            {
+                ex.printStackTrace();
+            }
+//        }).start();
+
+
+    }
+
+    private void stopServer()
+    {
         try
         {
-            server = new ChatServer(4200);
-            server.startServer();
-            appendToLog("Started Server");
-            server.receiveClient();
-            appendToLog("Received Client");
-            appendToLog(server.getClient().getLocalAddress().getHostAddress());
+            server.stopServer();
+
         }
         catch (IOException ex)
         {
             ex.printStackTrace();
         }
-
     }
 
     private void appendToLog(String msg)
@@ -67,6 +84,10 @@ public class ChatServerGUI extends Application
             runServer();
         });
         stopButton = new Button("Stop Server");
+        stopButton.setOnAction(e ->
+        {
+            stopServer();
+        });
 
         log = new Label();
         log.setText("LOG");
