@@ -1,21 +1,16 @@
 package ChatApplication.Network;
 
-import Old.ClientThread;
-
-import javax.xml.crypto.Data;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
 /**
  * Created by DaMasterHam on 22-02-2017.
  */
-public class ChatServerClient extends ChatClient
+public class ChatSocketServer extends ChatSocket
 {
     private String name;
 
-    public ChatServerClient(Socket host) throws IOException
+    public ChatSocketServer(Socket host) throws IOException
     {
         super(host);
     }

@@ -5,15 +5,26 @@ import java.net.Socket;
 
 //Created by DaMasterHam on 21-02-2017.
 //
-public class ChatUserClient extends ChatClient
+public class ChatSocketUser extends ChatSocket
 {
     private String hostUrl;
     private int port;
+    private String name;
 
-    public ChatUserClient(String host, int port)
+    public ChatSocketUser(String host, int port)
     {
         this.hostUrl = host;
         this.port = port;
+    }
+
+    public String getName()
+    {
+        return name;
+    }
+
+    public void setName(String name)
+    {
+        this.name = name;
     }
 
     public void connect() throws IOException
@@ -26,6 +37,8 @@ public class ChatUserClient extends ChatClient
         host = new Socket(hostUrl, port);
         initializeStreams();
     }
+
+
 
 //    public void sendMessage(String message)throws IOException
 //    {

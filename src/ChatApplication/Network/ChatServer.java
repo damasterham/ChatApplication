@@ -15,7 +15,7 @@ public class ChatServer
     private boolean receiveAlive;
     private Thread receiverThread;
 
-    private List<ChatServerClient> serverClientThreads;
+    private List<ChatSocketServer> serverClientThreads;
 
 
     public ChatServer(int port)
@@ -26,7 +26,7 @@ public class ChatServer
 
     private boolean isNameTaken(String name)
     {
-        for (ChatServerClient client : serverClientThreads)
+        for (ChatSocketServer client : serverClientThreads)
         {
             if (client.getName().toLowerCase().equals(name))
                 return true;
@@ -36,7 +36,7 @@ public class ChatServer
 
     private void sendMessageToAll(String message) throws IOException
     {
-        for (ChatServerClient client : serverClientThreads)
+        for (ChatSocketServer client : serverClientThreads)
         {
             client.sendMessage(message);
         }
@@ -77,7 +77,7 @@ public class ChatServer
                 {
                     System.out.println("Alive");
                     // Listens to clients
-                    ChatServerClient client = new ChatServerClient(ss.accept());
+                    ChatSocketServer client = new ChatSocketServer(ss.accept());
                     System.out.println("Client received");
                     // Starts a new thread for intial connection
                     new Thread(() ->
