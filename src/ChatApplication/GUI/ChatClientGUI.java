@@ -31,6 +31,8 @@ public class ChatClientGUI extends Application
     private Button submit;
     private TextArea messageLog;
 
+    private Thread listenerThread;
+
     private void initializeClient()
     {
         client = new ChatUserClient("localhost", Global.PORT);
@@ -39,7 +41,7 @@ public class ChatClientGUI extends Application
     // Runs a new thread that listens and writes messages to message log
     private void listenToMessages()
     {
-        new Thread(() ->
+        listenerThread = new Thread(() ->
         {
             try
             {
@@ -58,6 +60,8 @@ public class ChatClientGUI extends Application
             }
 
         });
+
+        listenerThread.start();
     }
 
     private void appendToMessageLog(String msg)
@@ -95,7 +99,7 @@ public class ChatClientGUI extends Application
         messageLog.setWrapText(true);
         messageLog.setDisable(true);
 
-        messageLog.setStyle("-fx-text-fill: #3c9001;");
+        //messageLog.setStyle("-fx-text-fill: #3c9001;");
 
         wrapPane.setCenter(messageLog);
 
@@ -118,9 +122,13 @@ public class ChatClientGUI extends Application
                 client.connect();
                 client.sendMessage(input.getText());
                 String msg = client.receiveMessage();
+                listenToMessages();
                 // If name is accepted, change submit to Message event
                 if (!msg.equals("Name already taken"))
+                {
+                    Platform.runLater(() -> appendToMessageLog(msg));
                     submit.setOnAction(new Message());
+                }
 
 
                 //Change to Message

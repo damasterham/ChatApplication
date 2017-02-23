@@ -88,18 +88,23 @@ public class ChatServer
                             System.out.println("Client trying \""+name+"\"");
                             // Check is client with username already exists
                             if (isNameTaken(name))
+                            {
+                                System.out.println("Name is taken");
                                 client.sendMessage("Name already taken");
+                            }
                             else
                             {
+                                System.out.println("Name is NOT taken");
                                 client.setName(name);
                                 serverClientThreads.add(client);
-                                client.sendMessage(name + " joined server");
+                                sendMessageToAll(name + " joined server");
 
                                 // Client is good and new thread is started for them to write and receive messages
                                 new Thread(() ->
                                 {
                                     try
                                     {
+                                        System.out.println(client.getName() + " is listening");
                                         while (client.isConnected())
                                         {
                                             String msg = client.receiveMessage();
@@ -110,7 +115,7 @@ public class ChatServer
                                     {
 
                                     }
-                                });
+                                }).start();
                             }
                         }
                         catch (IOException ex)
