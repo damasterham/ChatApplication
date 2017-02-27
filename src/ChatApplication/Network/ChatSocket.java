@@ -9,18 +9,18 @@ import java.net.Socket;
 /**
  * Created by DaMasterHam on 22-02-2017.
  */
-public abstract class ChatClient
+public abstract class ChatSocket
 {
     protected Socket host;
     protected DataInputStream in;
     protected DataOutputStream out;
 
-    public ChatClient()
+    public ChatSocket()
     {
 
     }
 
-    public ChatClient(Socket host) throws IOException
+    public ChatSocket(Socket host) throws IOException
     {
         this.host = host;
         initializeStreams();

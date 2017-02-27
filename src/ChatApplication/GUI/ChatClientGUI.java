@@ -1,11 +1,11 @@
 package ChatApplication.GUI;//
 
-import ChatApplication.Network.ChatUserClient;
+import ChatApplication.Network.ChatSocketUser;
 import ChatApplication.Global;
+import ChatApplication.Protocol.ClientProtocolActions;
+import ChatApplication.Protocol.ChatProtocol;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
@@ -19,7 +19,9 @@ import java.io.IOException;
 //
 public class ChatClientGUI extends Application
 {
-    private ChatUserClient client;
+    // Move Fx to ChatSocketUser
+    private ChatSocketUser client;
+    private ChatProtocol protocol;
 
     // FX
     private Stage mainStage;
@@ -33,13 +35,39 @@ public class ChatClientGUI extends Application
 
     private Thread listenerThread;
 
-    private void initializeClient()
+
+    public TextField getInput() {
+        return input;
+    }
+
+    public Button getSubmit() {
+        return submit;
+    }
+
+    public TextArea getMessageLog() {
+        return messageLog;
+    }
+
+    public void launchFx()
     {
-        client = new ChatUserClient("localhost", Global.PORT);
+        launch();
+    }
+
+    public void initializeClient()
+    {
+        client = new ChatSocketUser("localhost", Global.PORT);
+        protocol = new ChatProtocol(new ClientProtocolActions());
+    }
+
+
+
+    public void chat() throws IOException
+    {
+
     }
 
     // Runs a new thread that listens and writes messages to message log
-    private void listenToMessages()
+    public void listenToMessages()
     {
         listenerThread = new Thread(() ->
         {
@@ -64,7 +92,7 @@ public class ChatClientGUI extends Application
         listenerThread.start();
     }
 
-    private void appendToMessageLog(String msg)
+    public void appendToMessageLog(String msg)
     {
         messageLog.setText(messageLog.getText() + "\n" + msg);
     }
@@ -90,7 +118,7 @@ public class ChatClientGUI extends Application
 
 
         // Sets the button to fire the Connect event first, will later be set to message
-        submit.setOnAction(new Connect());
+        //submit.setOnAction(new Connect());
 
         inputBar.setLeft(input);
         inputBar.setRight(submit);
@@ -98,7 +126,7 @@ public class ChatClientGUI extends Application
         // Output
         messageLog = new TextArea();
         messageLog.setWrapText(true);
-        messageLog.setDisable(true);
+        messageLog.setDisable(false);
 
         //messageLog.setStyle("-fx-text-fill: #3c9001;");
 
@@ -112,6 +140,7 @@ public class ChatClientGUI extends Application
 
         initializeClient();
     }
+/*
 
     private class Connect implements EventHandler<ActionEvent>
     {
@@ -120,18 +149,7 @@ public class ChatClientGUI extends Application
         {
             try
             {
-                client.connect();
-                client.sendMessage(input.getText());
-                String msg = client.receiveMessage();
-                listenToMessages();
-                // If name is accepted, change submit to Message event
-                if (!msg.equals("Name already taken"))
-                {
-                    Platform.runLater(() -> appendToMessageLog(msg));
-                    submit.setOnAction(new Message());
-                }
-
-
+                joinServer();
                 //Change to Message
             }
             catch (IOException ex)
@@ -140,21 +158,8 @@ public class ChatClientGUI extends Application
             }
         }
     }
+*/
 
-    private class Message implements EventHandler<ActionEvent>
-    {
-        @Override
-        public void handle(ActionEvent event)
-        {
-            try
-            {
-                client.sendMessage(input.getText());
-            }
-            catch (IOException ex)
-            {
-                ex.printStackTrace();
-            }
-        }
-    }
+
 
 }
