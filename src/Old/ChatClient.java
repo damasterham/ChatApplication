@@ -54,7 +54,7 @@ public class ChatClient extends Application
 
             joinServer(SERVER_HOST, SERVER_PORT, input.getText());
 
-            //sendMessage("DATA", input.getText());
+            //sendString("DATA", input.getText());
         });
 
         inputBar.setLeft(input);

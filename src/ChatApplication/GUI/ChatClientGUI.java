@@ -1,11 +1,8 @@
 package ChatApplication.GUI;//
 
 import ChatApplication.Network.ChatSocketUser;
-import ChatApplication.Global;
-import ChatApplication.Protocol.ClientProtocolActions;
-import ChatApplication.Protocol.ChatProtocol;
+import ChatApplication.Protocol.ChatProtocolResponseHandler;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
@@ -21,7 +18,7 @@ public class ChatClientGUI extends Application
 {
     // Move Fx to ChatSocketUser
     private ChatSocketUser client;
-    private ChatProtocol protocol;
+    private ChatProtocolResponseHandler protocol;
 
     // FX
     private Stage mainStage;
@@ -33,7 +30,6 @@ public class ChatClientGUI extends Application
     private Button submit;
     private TextArea messageLog;
 
-    private Thread listenerThread;
 
 
     public TextField getInput() {
@@ -53,11 +49,11 @@ public class ChatClientGUI extends Application
         launch();
     }
 
-    public void initializeClient()
-    {
-        client = new ChatSocketUser("localhost", Global.PORT);
-        protocol = new ChatProtocol(new ClientProtocolActions());
-    }
+//    public void initializeClient()
+//    {
+//        client = new ChatSocketUser("localhost", Global.PORT);
+//        protocol = new ChatProtocolResponseHandler(new ClientProtocolResponse());
+//    }
 
 
 
@@ -66,31 +62,7 @@ public class ChatClientGUI extends Application
 
     }
 
-    // Runs a new thread that listens and writes messages to message log
-    public void listenToMessages()
-    {
-        listenerThread = new Thread(() ->
-        {
-            try
-            {
-                while (client.isConnected())
-                {
-                    String msg = client.receiveMessage();
-                    Platform.runLater(() ->
-                    {
-                        appendToMessageLog(msg);
-                    });
-                }
-            }
-            catch (IOException ex)
-            {
-                ex.printStackTrace();
-            }
 
-        });
-
-        listenerThread.start();
-    }
 
     public void appendToMessageLog(String msg)
     {
@@ -138,7 +110,7 @@ public class ChatClientGUI extends Application
         mainStage.setScene(mainScene);
         mainStage.show();
 
-        initializeClient();
+        //initializeClient();
     }
 /*
 

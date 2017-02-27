@@ -1,9 +1,8 @@
-package ChatApplication.Network;
+package ChatApplication.Network.Abstract;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.Socket;
 
 /**
@@ -17,11 +16,11 @@ public abstract class ChatSocket
 
     public ChatSocket()
     {
-
     }
 
     public ChatSocket(Socket host) throws IOException
     {
+        // Creates a new ProtocolHandler with implemented ProtocolActions
         this.host = host;
         initializeStreams();
     }
@@ -40,13 +39,14 @@ public abstract class ChatSocket
         return host.isConnected();
     }
 
-    public void sendMessage(String message) throws IOException
+
+    protected void sendString(String message) throws IOException
     {
         out.writeUTF(message);
         out.flush();
     }
 
-    public String receiveMessage() throws IOException
+    protected String receiveString() throws IOException
     {
         return in.readUTF();
     }

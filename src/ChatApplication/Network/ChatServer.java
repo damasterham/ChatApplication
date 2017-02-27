@@ -1,5 +1,8 @@
 package ChatApplication.Network;//
 
+import ChatApplication.Application.ProtocolResponse.ServerProtocolResponse;
+import ChatApplication.Protocol.ChatProtocolResponseHandler;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.util.ArrayList;
@@ -16,12 +19,15 @@ public class ChatServer
     private Thread receiverThread;
 
     private List<ChatSocketServer> serverClientThreads;
+    private ChatProtocolResponseHandler responseHandler;
 
 
     public ChatServer(int port)
     {
         serverClientThreads = new ArrayList<>();
         this.port = port;
+        // Creates a ResponseHandler with contextual ServerResponse
+        responseHandler = new ChatProtocolResponseHandler(new ServerProtocolResponse(this));
     }
 
     private boolean isNameTaken(String name)
@@ -34,11 +40,11 @@ public class ChatServer
         return false;
     }
 
-    private void sendMessageToAll(String message) throws IOException
+    public void sendMessageToAll(String sender, String message)
     {
         for (ChatSocketServer client : serverClientThreads)
         {
-            client.sendMessage(message);
+            //client.(message);
         }
     }
 
@@ -79,50 +85,13 @@ public class ChatServer
                     // Listens to clients
                     ChatSocketServer client = new ChatSocketServer(ss.accept());
                     System.out.println("Client received");
-                    // Starts a new thread for intial connection
+                    // Listens for data from client
                     new Thread(() ->
                     {
-                        try
-                        {
-                            String name = client.receiveMessage();
-                            System.out.println("Client trying \""+name+"\"");
-                            // Check is client with username already exists
-                            if (isNameTaken(name))
-                            {
-                                System.out.println("Name is taken");
-                                client.sendMessage("Name already taken");
-                            }
-                            else
-                            {
-                                System.out.println("Name is NOT taken");
-                                client.setName(name);
-                                serverClientThreads.add(client);
-                                sendMessageToAll(name + " joined server");
+                        client.receiveString()
+                    })
 
-                                // Client is good and new thread is started for them to write and receive messages
-                                new Thread(() ->
-                                {
-                                    try
-                                    {
-                                        System.out.println(client.getName() + " is listening");
-                                        while (client.isConnected())
-                                        {
-                                            String msg = client.receiveMessage();
-                                            sendMessageToAll(msg);
-                                        }
-                                    }
-                                    catch (IOException ex)
-                                    {
 
-                                    }
-                                }).start();
-                            }
-                        }
-                        catch (IOException ex)
-                        {
-
-                        }
-                    }).start();
                 }
             }
             catch (IOException ex)

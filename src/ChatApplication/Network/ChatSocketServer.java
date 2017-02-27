@@ -1,5 +1,7 @@
 package ChatApplication.Network;
 
+import ChatApplication.Network.Abstract.ChatSocket;
+
 import java.io.IOException;
 import java.net.Socket;
 
@@ -24,4 +26,5 @@ public class ChatSocketServer extends ChatSocket
     {
         this.name = name;
     }
+
 }

@@ -1,5 +1,10 @@
 package ChatApplication.Network;//
 
+import ChatApplication.Network.Abstract.ChatSocket;
+import ChatApplication.Protocol.Abstract.IChatProtocolResponse;
+import ChatApplication.Protocol.ChatProtocolParser;
+import ChatApplication.Protocol.ChatProtocolResponseHandler;
+
 import java.io.IOException;
 import java.net.Socket;
 
@@ -11,10 +16,16 @@ public class ChatSocketUser extends ChatSocket
     private int port;
     private String name;
 
-    public ChatSocketUser(String host, int port)
+    private ChatProtocolParser protocolParser;
+    private ChatProtocolResponseHandler protocolResponseHandler;
+
+    public ChatSocketUser(String host, int port, ChatProtocolParser protocolParser, ChatProtocolResponseHandler protocolResponseHandler)
     {
         this.hostUrl = host;
         this.port = port;
+
+        this.protocolParser = protocolParser;
+        this.protocolResponseHandler = protocolResponseHandler;
     }
 
     public String getName()
@@ -38,14 +49,29 @@ public class ChatSocketUser extends ChatSocket
         initializeStreams();
     }
 
+    public void tryJoin(String name) throws IOException
+    {
+        sendString(protocolParser.packJoin(name, "N/A", "N/A"));
+    }
+
+    public void sendMessage(String msg) throws IOException
+    {
+        sendString(protocolParser.packMessage(name, msg));
+    }
+
+    public void receiveMessage() throws IOException
+    {
+        protocolResponseHandler.parse(receiveString());
+    }
 
 
-//    public void sendMessage(String message)throws IOException
+
+//    public void sendString(String message)throws IOException
 //    {
 //        output.writeUTF(message);
 //        output.flush();
 //    }
-//    public String receiveMessage() throws IOException
+//    public String receiveString() throws IOException
 //    {
 //        return input.readUTF();
 //    }
