@@ -88,6 +88,7 @@ public class ChatClientGUI extends Application
         submit = new Button();
         submit.setText("Send");
 
+
         // Sets the button to fire the Connect event first, will later be set to message
         submit.setOnAction(new Connect());
 

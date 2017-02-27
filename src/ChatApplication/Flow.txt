@@ -1,0 +1,7 @@
+ChatClientApplication
+Main
+Creates ChatClientGui view
+Creates ChatClientProtocol proto
+Creates ChatSocketClient(proto)
+
+view is launched
