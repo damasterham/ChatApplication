@@ -1,9 +1,7 @@
-package ChatApplication.Application.ProtocolResponse;//
+package OverlyComplex.Abstract.ProtocolResponse;//
 
-import ChatApplication.Network.ChatServer;
-import ChatApplication.Network.ChatSocketServer;
-import ChatApplication.Protocol.Abstract.IChatProtocolResponse;
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
+import ChatApplication.Network.Server;
+import OverlyComplex.Abstract.IChatProtocolResponse;
 
 import java.io.IOException;
 
@@ -11,9 +9,9 @@ import java.io.IOException;
 //
 public class ServerProtocolResponse implements IChatProtocolResponse
 {
-    private ChatServer server;
+    private Server server;
 
-    public ServerProtocolResponse(ChatServer server)
+    public ServerProtocolResponse(Server server)
     {
         this.server = server;
     }

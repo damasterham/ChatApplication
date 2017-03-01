@@ -1,20 +1,22 @@
-package ChatApplication.GUI;//
+package ChatApplication.Application;//
 
-import ChatApplication.Network.ChatServer;
-import ChatApplication.Global;
+import ChatApplication.Network.Server;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
 import java.io.IOException;
 
-//Created by DaMasterHam on 21-02-2017.
-//
-public class ChatServerGUI extends Application
+// Gui and Control of flow
+public class ServerApplication extends Application
 {
+    // Network
+    private Server server;
+
     // FX
     private Stage mainStage;
     private BorderPane wrapPane;
@@ -24,10 +26,7 @@ public class ChatServerGUI extends Application
     private Button startButton;
     private Button stopButton;
 
-    private Label log;
-
-    // Server
-    private ChatServer server;
+    private TextArea log;
 
     private void runServer()
     {
@@ -35,12 +34,13 @@ public class ChatServerGUI extends Application
 //        {
             try
             {
-                server = new ChatServer(Global.PORT);
+                server = new Server(Server.PORT, this);
                 server.startServer();
                 //appendToLog("Started Server");
-                server.startReceivingAsync();
+                server.startReceiving();
                 //appendToLog("Ready to Receive clients");
                 //appendToLog(server.getClient().getLocalAddress().getHostAddress());
+
             }
             catch (IOException ex)
             {
@@ -64,10 +64,14 @@ public class ChatServerGUI extends Application
         }
     }
 
-    private void appendToLog(String msg)
+    public void appendToLog(String msg)
     {
-        log.setText(log.getText() + "\n" + msg);
-        mainStage.show();
+        Platform.runLater(() ->
+        {
+            log.setText(log.getText() + "\n" + msg);
+            mainStage.show();
+        });
+
     }
 
     @Override
@@ -89,7 +93,7 @@ public class ChatServerGUI extends Application
             stopServer();
         });
 
-        log = new Label();
+        log = new TextArea();
         log.setText("LOG");
         log.setWrapText(true);
 

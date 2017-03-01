@@ -1,8 +1,8 @@
-package ChatApplication.Application.ProtocolResponse;//
+package OverlyComplex.Abstract.ProtocolResponse;//
 
-import ChatApplication.GUI.ChatClientGUI;
+import ChatApplication.Application.ClientApplication;
 import ChatApplication.Network.ChatSocketUser;
-import ChatApplication.Protocol.Abstract.IChatProtocolResponse;
+import OverlyComplex.Abstract.IChatProtocolResponse;
 import javafx.application.Platform;
 
 import java.io.IOException;
@@ -13,10 +13,10 @@ public class ClientProtocolResponse implements IChatProtocolResponse
 {
     private static final String LOGIN_FAIL_MSG = "Your name is already taken, please try another";
 
-    private ChatClientGUI view;
+    private ClientApplication view;
     private ChatSocketUser client;
 
-    public ClientProtocolResponse(ChatClientGUI gui, ChatSocketUser client)
+    public ClientProtocolResponse(ClientApplication gui, ChatSocketUser client)
     {
         this.view = view;
         this.client = client;

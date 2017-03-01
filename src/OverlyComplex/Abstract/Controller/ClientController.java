@@ -1,6 +1,6 @@
-package ChatApplication.Controller;
+package OverlyComplex.Abstract.Controller;
 
-import ChatApplication.GUI.ChatClientGUI;
+import ChatApplication.Application.ClientApplication;
 import ChatApplication.Network.ChatSocketUser;
 
 import java.io.IOException;
@@ -10,13 +10,13 @@ import java.io.IOException;
  */
 public class ClientController
 {
-    private ChatClientGUI view;
+    private ClientApplication view;
     private ChatSocketUser client;
 
     private Thread listenerThread;
 
 
-    public ClientController(ChatClientGUI view, ChatSocketUser client)
+    public ClientController(ClientApplication view, ChatSocketUser client)
     {
         this.view = view;
         javafx.application.Application.launch(view.getClass(), "");
@@ -35,8 +35,8 @@ public class ClientController
             client.connect();
 
             client.tryJoin(name);
-            //client.sendString(protocol.join(name, "WhateverIp", "WhateverPort"));
-            //protocol.parse(client.receiveString());
+            //client.sendData(protocol.join(name, "WhateverIp", "WhateverPort"));
+            //protocol.parse(client.receiveData());
 
 
 
@@ -100,7 +100,7 @@ public class ClientController
 //        @Override
 //        public void handle(ActionEvent event)
 //        {
-//            sendString();
+//            sendData();
 //        }
 //    }
 

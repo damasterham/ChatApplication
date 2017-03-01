@@ -6,12 +6,17 @@ import java.io.StringReader;
 /**
  * Created by DaMasterHam on 23-02-2017.
  */
-public class ChatProtocolParser
+public class ProtocolHandler
 {
+    public static final int MAX_NAME_LENGTH = 12;
+
     // Protocol Syntax
     private static final int DELIMITER = (int)' ';
     private static final int START_PARA = (int)'{';
     private static final int END_PARA = (int)'}';
+
+    public static final String ERR_NAME_LENGTH = "NAME_LENGTH";
+    public static final String ERR_NAME_TAKEN = "NAME_TAKEN";
 
     // Server -> Client
     public static final String JOIN_OK = "J_OK";
@@ -130,9 +135,15 @@ public class ChatProtocolParser
         return JOIN_OK;
     }
 
-    public static String packJoinError()
+    public static String packJoinErrorTaken()
     {
-        return JOIN_ERR;
+        return pack(JOIN_ERR, ERR_NAME_TAKEN);
+    }
+
+    public static String packJoinErrorLength()
+    {
+        return pack(JOIN_ERR, ERR_NAME_LENGTH, ""+MAX_NAME_LENGTH);
+
     }
 
     public static String packMessage(String name, String message)
@@ -140,4 +151,15 @@ public class ChatProtocolParser
         return pack(MSG, name, message);
     }
 
+    public static String packList(String userNames)
+    {
+        return pack(LIST, userNames);
+    }
+
+
+//    public enum JoinError
+//    {
+//        NAME_TAKEN, NAME_LENGTH
+//    }
 }
+

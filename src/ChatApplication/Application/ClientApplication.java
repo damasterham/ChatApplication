@@ -1,8 +1,11 @@
-package ChatApplication.GUI;//
+package ChatApplication.Application;//
 
-import ChatApplication.Network.ChatSocketUser;
-import ChatApplication.Protocol.ChatProtocolResponseHandler;
+import ChatApplication.Network.ClientEndpoint;
+import ChatApplication.Network.Server;
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
@@ -12,13 +15,11 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
-//Created by DaMasterHam on 21-02-2017.
-//
-public class ChatClientGUI extends Application
+// Gui and Control of flow
+public class ClientApplication extends Application
 {
-    // Move Fx to ChatSocketUser
-    private ChatSocketUser client;
-    private ChatProtocolResponseHandler protocol;
+    // Network
+    private ClientEndpoint client;
 
     // FX
     private Stage mainStage;
@@ -44,29 +45,23 @@ public class ChatClientGUI extends Application
         return messageLog;
     }
 
-    public void launchFx()
+    public void initializeClient()
     {
-        launch();
+        try
+        {
+            client = new ClientEndpoint("localhost", Server.PORT, this);
+        }
+        catch (IOException ex)
+        {
+            ex.printStackTrace();
+        }
     }
-
-//    public void initializeClient()
-//    {
-//        client = new ChatSocketUser("localhost", Global.PORT);
-//        protocol = new ChatProtocolResponseHandler(new ClientProtocolResponse());
-//    }
-
-
-
-    public void chat() throws IOException
-    {
-
-    }
-
-
 
     public void appendToMessageLog(String msg)
     {
-        messageLog.setText(messageLog.getText() + "\n" + msg);
+        Platform.runLater(() ->
+                messageLog.setText(messageLog.getText() + "\n" + msg)
+        );
     }
 
 
@@ -87,7 +82,7 @@ public class ChatClientGUI extends Application
         input.setText("Msg");
         submit = new Button();
         submit.setText("Send");
-
+        submit.setOnAction(new Connect());
 
         // Sets the button to fire the Connect event first, will later be set to message
         //submit.setOnAction(new Connect());
@@ -110,10 +105,10 @@ public class ChatClientGUI extends Application
         mainStage.setScene(mainScene);
         mainStage.show();
 
-        //initializeClient();
+        initializeClient();
     }
-/*
 
+    // Here we call client in FX to set the action...
     private class Connect implements EventHandler<ActionEvent>
     {
         @Override
@@ -121,8 +116,7 @@ public class ChatClientGUI extends Application
         {
             try
             {
-                joinServer();
-                //Change to Message
+                client.joinServer(getInput().getText());
             }
             catch (IOException ex)
             {
@@ -130,7 +124,6 @@ public class ChatClientGUI extends Application
             }
         }
     }
-*/
 
 
 
