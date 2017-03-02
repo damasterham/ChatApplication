@@ -47,7 +47,7 @@ public class Server
     {
         for (ServerEndpoint client : clients)
         {
-            if (client.getName().toLowerCase().equals(name))
+            if (client.getName().toLowerCase().equals(name.toLowerCase()))
                 return true;
         }
         return false;
