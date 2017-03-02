@@ -156,7 +156,10 @@ public class ProtocolHandler
         return pack(LIST, userNames);
     }
 
-
+    public static String packQuit()
+    {
+        return QUIT;
+    }
 //    public enum JoinError
 //    {
 //        NAME_TAKEN, NAME_LENGTH

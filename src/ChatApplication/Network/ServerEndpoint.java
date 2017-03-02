@@ -12,6 +12,7 @@ public class ServerEndpoint
     private String ip;
     private String port;
 
+    private Thread listener;
     private CommunicationEndpoint comm;
 
     public ServerEndpoint(Socket socket) throws IOException
@@ -41,6 +42,15 @@ public class ServerEndpoint
 
     public void setPort(String port) {
         this.port = port;
+    }
+
+    public Thread getListener()
+    {
+        return listener;
+    }
+
+    public void setListener(Thread listener) {
+        this.listener = listener;
     }
 
     // Sending

@@ -65,7 +65,12 @@ public class CommunicationEndpoint
 
     public void disconnect() throws IOException
     {
-        host.close();
+        if (!host.isClosed())
+        {
+            in.close();
+            out.close();
+            host.close();
+        }
     }
 
 }

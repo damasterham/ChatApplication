@@ -108,6 +108,20 @@ public class ClientApplication extends Application
         initializeClient();
     }
 
+    @Override
+    public void stop() throws Exception
+    {
+        try
+        {
+            client.leaveServer();
+        }
+        catch (IOException ex)
+        {
+            ex.printStackTrace();
+        }
+        super.stop();
+    }
+
     // Here we call client in FX to set the action...
     private class Connect implements EventHandler<ActionEvent>
     {
@@ -124,6 +138,8 @@ public class ClientApplication extends Application
             }
         }
     }
+
+
 
 
 

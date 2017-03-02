@@ -14,6 +14,7 @@ public class ClientEndpoint
 
     private ClientApplication clientApp;
     private CommunicationEndpoint comm;
+    private Thread listener;
 
     public ClientEndpoint(String hostname, int port, ClientApplication clientApp) throws IOException
     {
@@ -28,23 +29,53 @@ public class ClientEndpoint
         listenToServer();
     }
 
-    // Sending
-    public void joinServer(String name) throws IOException
+
+    // Actions
+    private void joinOk()
     {
-        if (name != "")
+        clientApp.appendToMessageLog("You've joined the server as " + name);
+
+        // Changes the submits buttons action to send messages, instead of request to join
+        // ... Here we call FX in client to set the action
+        clientApp.getSubmit().setOnAction(e ->
         {
-            connect();
-
-            if (comm.isConnected())
+            try
             {
-                String joinProtocol = ProtocolHandler.packJoin(name, comm.getLocalIp(), "" + comm.getLocalPort());
-                comm.sendData(joinProtocol);
-                this.name = name;
+                sendMessage(clientApp.getInput().getText());
             }
-        }
-
+            catch (IOException ex)
+            {
+                ex.printStackTrace();
+            }
+        });
     }
 
+    private void joinError(String errorMessage)
+    {
+        Platform.runLater(() ->
+        {
+            name = null;
+            clientApp.appendToMessageLog("You failed to join the server due to: \n");
+            clientApp.appendToMessageLog(errorMessage);
+        });
+    }
+
+    private void sendMessage(String message) throws IOException
+    {
+        String msg = ProtocolHandler.packMessage(name, message);
+
+        comm.sendData(msg);
+    }
+
+    private void printMessage(String name, String message)
+    {
+        clientApp.appendToMessageLog(name + ": " + message);
+    }
+
+    private void printUsers(String listOfUsers)
+    {
+        clientApp.appendToMessageLog("Users Online: " + listOfUsers);
+    }
 
     // Receiving
     private void handleProtocol(String data) {
@@ -80,73 +111,73 @@ public class ClientEndpoint
 
     private void listenToServer()
     {
-        new Thread(() ->
-        {
-
-            try
+            listener = new Thread(() ->
             {
-                while (comm.isConnected())
-                {
-                    String data = comm.receiveData();
 
-                    handleProtocol(data);
-                }
-            }
-            catch (IOException ex)
-            {
-                ex.printStackTrace();
-            }
-        }).start();
-    }
-
-    // Actions
-    private void joinOk()
-    {
-
-            clientApp.appendToMessageLog("You've joined the server as " + name);
-
-            // Changes the submits buttons action to send messages, instead of request to join
-            // ... Here we call FX in client to set the action
-            clientApp.getSubmit().setOnAction(e ->
-            {
                 try
                 {
-                    sendMessage(clientApp.getInput().getText());
+                    while (comm.isConnected())
+                    {
+                        String data = comm.receiveData();
+
+                        handleProtocol(data);
+                    }
                 }
                 catch (IOException ex)
                 {
                     ex.printStackTrace();
                 }
             });
+
+            listener.start();
     }
 
-    private void joinError(String errorMessage)
+
+    // Sending
+    public void joinServer(String name) throws IOException
     {
-        Platform.runLater(() ->
+        if (name != "")
         {
-            name = null;
-            clientApp.appendToMessageLog("You failed to join the server due to: \n");
-            clientApp.appendToMessageLog(errorMessage);
-        });
+            connect();
+
+            if (comm.isConnected())
+            {
+                String joinProtocol = ProtocolHandler.packJoin(name, comm.getLocalIp(), "" + comm.getLocalPort());
+                comm.sendData(joinProtocol);
+                this.name = name;
+            }
+        }
+
     }
 
-    private void sendMessage(String message) throws IOException
+    // Sends a QUIT protocol to server and disconnects
+    public void leaveServer() throws IOException
     {
-        String msg = ProtocolHandler.packMessage(name, message);
+        // Sends QUIt protocol
+        comm.sendData(ProtocolHandler.packQuit());
 
-        comm.sendData(msg);
+        try
+        {
+            // Stops the listenerThread
+            //stopListening();
+            listener.interrupt();
+
+            // Closes the socket connection
+            comm.disconnect();
+
+            //listener.join();
+        }
+        catch (IOException ex)
+        {
+            clientApp.appendToMessageLog("EXCEPTION: Sever already disconnected you");
+        }
+//        catch (InterruptedException ex)
+//        {
+//            clientApp.appendToMessageLog("EXCEPTION: Listener thread join interupted");
+//        }
     }
 
-    private void printMessage(String name, String message)
-    {
-        clientApp.appendToMessageLog(name + ": " + message);
-    }
 
-    private void printUsers(String listOfUsers)
-    {
-
-        clientApp.appendToMessageLog("Users Online: " + listOfUsers);
-    }
 
 //    private void printUsers(String[] listOfUsers)
 //    {

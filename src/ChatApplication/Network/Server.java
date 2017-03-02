@@ -93,11 +93,20 @@ public class Server
         // Removes client from list.
         // So now he cannot receive messages from other clients
         clients.remove(client);
-        // Disconnects client, should throw IOException on user side.
-        client.disconnect();
+
+        try
+        {
+            // Disconnects client, by closing socket connection
+            // Should throw IOException on user side.
+            client.disconnect();
+        }
+        catch (IOException ex)
+        {
+            serverApp.appendToLog("EXCEPTION: " + client.getName() + " already disconnected from client side");
+        }
+
         // Sends an updated list to all clients
         sendListToAll();
-
         serverApp.appendToLog(client.getName() + " disconnected");
     }
 
@@ -162,14 +171,15 @@ public class Server
                 break;
             case ProtocolHandler.QUIT :
                 disconnectClient(client);
-                default:
+                break;
+            default:
                     Platform.runLater(()->
                             {
                                 serverApp.appendToLog("Server received message with incorrect protocol syntax:");
                                 serverApp.appendToLog(data) ;
                             }
                     );
-                    break;
+                break;
         }
     }
 
