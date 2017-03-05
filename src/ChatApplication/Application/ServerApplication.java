@@ -19,15 +19,17 @@ public class ServerApplication extends Application
 
     // FX
     private Stage mainStage;
-    private BorderPane wrapPane;
-    private BorderPane inputBar;
-    private Scene mainScene;
 
+    private BorderPane wrapPane;
+    private TextArea log;
+
+    private BorderPane inputBar;
     private Button startButton;
     private Button stopButton;
 
-    private TextArea log;
+    private Scene mainScene;
 
+    // Creates a Server, starts it and starts listening
     private void runServer()
     {
 //        new Thread(() ->
@@ -36,7 +38,6 @@ public class ServerApplication extends Application
             {
                 server = new Server(Server.PORT, this);
                 server.startServer();
-                //appendToLog("Started Server");
                 server.startReceiving();
                 //appendToLog("Ready to Receive clients");
                 //appendToLog(server.getClient().getLocalAddress().getHostAddress());
@@ -79,7 +80,16 @@ public class ServerApplication extends Application
     {
         mainStage = primaryStage;
 
+        // Main Layout
         wrapPane = new BorderPane();
+
+        log = new TextArea();
+        log.setText("LOG");
+        log.setWrapText(true);
+
+        wrapPane.setCenter(log);
+
+        // Top Main Layout
         inputBar = new BorderPane();
 
         startButton = new Button("Start Server");
@@ -87,24 +97,22 @@ public class ServerApplication extends Application
         {
             runServer();
         });
+
         stopButton = new Button("Stop Server");
         stopButton.setOnAction(e ->
         {
             stopServer();
         });
 
-        log = new TextArea();
-        log.setText("LOG");
-        log.setWrapText(true);
-
         inputBar.setLeft(startButton);
         inputBar.setRight(stopButton);
 
         wrapPane.setTop(inputBar);
-        wrapPane.setCenter(log);
 
+        // Scene
         mainScene = new Scene(wrapPane, 450, 200);
 
+        // Stage
         mainStage.setScene(mainScene);
         mainStage.show();
     }

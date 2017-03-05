@@ -2,6 +2,7 @@ package ChatApplication.Network;//
 
 import ChatApplication.Application.ServerApplication;
 import ChatApplication.Protocol.ProtocolHandler;
+import ChatApplication.Validation.ChatValidation;
 import javafx.application.Platform;
 
 import java.io.*;
@@ -9,8 +10,6 @@ import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
 
-//Created by DaMasterHam on 21-02-2017.
-//
 public class Server
 {
     public static final int PORT = 42000;
@@ -25,7 +24,7 @@ public class Server
     private List<ServerEndpoint> clients;
     private ServerApplication serverApp;
 
-
+    // Server constructor
     public Server(int port, ServerApplication serverApp)
     {
         maxNameLength = ProtocolHandler.MAX_NAME_LENGTH;
@@ -35,14 +34,7 @@ public class Server
         this.serverApp = serverApp;
     }
 
-
-
     // Name check
-    private boolean isNameToLong(String name)
-    {
-        return name.length() > maxNameLength;
-    }
-
     private boolean isNameTaken(String name)
     {
         for (ServerEndpoint client : clients)
@@ -53,8 +45,6 @@ public class Server
         return false;
     }
 
-
-
     // Sending data
     private void sendDataToAll(String data) throws IOException
     {
@@ -64,6 +54,7 @@ public class Server
         }
     }
 
+    // Creates the "LIST" messages to be send to all
     private void sendListToAll() throws IOException
     {
         String userNames = "";
@@ -84,8 +75,6 @@ public class Server
 
         sendDataToAll(protocol);
     }
-
-
 
     // Handling methods
     private void disconnectClient(ServerEndpoint client) throws IOException
@@ -110,6 +99,7 @@ public class Server
         serverApp.appendToLog(client.getName() + " disconnected");
     }
 
+    // Handles "JOIN" messages from Clients
     private void handleJoin(String[] protocol, ServerEndpoint client) throws IOException
     {
         String serverMsg;
@@ -122,8 +112,8 @@ public class Server
             String ip = protocol[2];
             String port = protocol[3];
 
-            if (!isNameToLong(name))
-            {
+//            if (!ChatValidation.isNameToLong(name))
+//            {
                 if (!isNameTaken(name))
                 {
                     client.setName(name);
@@ -132,23 +122,25 @@ public class Server
 
                     // Sends a J_OK protocol
                     client.sendData(ProtocolHandler.packJoinOk());
+
                     // Adds client to list
                     clients.add(client);
+
                     // Sends an updated list to all clients
                     sendListToAll();
                     serverMsg = "Client " + name + " connected with valid name, and is added to client list";
                 }
                 else
                 {
-                    client.sendData(ProtocolHandler.packJoinErrorTaken());
+                    client.sendData(ProtocolHandler.JOIN_ERR);//ProtocolHandler.packJoinErrorTaken());
                     serverMsg = "Client tried to connect with already existing name: " + name;
                 }
-            }
-            else
-            {
-                client.sendData(ProtocolHandler.packJoinErrorLength());
-                serverMsg = "Client tried to connect with to long of a name: " + name;
-            }
+//            }
+//            else
+//            {
+//                client.sendData(ProtocolHandler.packJoinErrorLength());
+//                serverMsg = "Client tried to connect with to long of a name: " + name;
+//            }
 
             serverApp.appendToLog(serverMsg);
         }
@@ -165,7 +157,8 @@ public class Server
             case ProtocolHandler.JOIN :
                 handleJoin(protocol, client);
                 break;
-            case ProtocolHandler.MSG : if (protocol.length == 3)
+            case ProtocolHandler.MSG :
+                if (protocol.length == 3)
                 sendMessageToAll(client.getName(), protocol[2]);
                 // You could technically also just send the original protocol forward
                 break;
@@ -202,7 +195,11 @@ public class Server
             }
             catch (IOException ex)
             {
+                serverApp.appendToLog(client.getName() + " socket connection broke, removing client from list");
+
                 ex.printStackTrace();
+                // If socket connection breaks, remove client
+                clients.remove(client);
             } // Does the thread close if it reaches the end?
         }).start();
     }
@@ -218,10 +215,13 @@ public class Server
                 while (receiveAlive)
                 {
                     serverApp.appendToLog("Listening for client");
+
                     // Waits to receive a new client
                     ServerEndpoint client = new ServerEndpoint(ss.accept());
+
                     serverApp.appendToLog("Client received");
 
+                    //
                     listenToClientAsync(client);
                 }
             }
@@ -232,8 +232,6 @@ public class Server
         }).start();
 
     }
-
-
 
     // Server control
     public void startReceiving() throws IOException
@@ -249,6 +247,7 @@ public class Server
         ss.close();
     }
 
+    // Starts the server
     public void startServer() throws IOException
     {
         ss = new ServerSocket(port);

@@ -3,19 +3,27 @@ package ChatApplication.Network;
 import ChatApplication.Application.ClientApplication;
 import ChatApplication.Protocol.ProtocolHandler;
 import javafx.application.Platform;
+import javafx.event.EventHandler;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 
 import java.io.IOException;
+import java.nio.channels.ClosedByInterruptException;
 
 public class ClientEndpoint
 {
     private String name;
+
+    // Unnecessary since this info is already in Socket
     private String hostname;
     private int port;
 
     private ClientApplication clientApp;
+
     private CommunicationEndpoint comm;
     private Thread listener;
 
+    // Constructor (parameters received from ClientApp "initializeClient" method)
     public ClientEndpoint(String hostname, int port, ClientApplication clientApp) throws IOException
     {
         this.hostname = hostname;
@@ -23,14 +31,35 @@ public class ClientEndpoint
         this.clientApp = clientApp;
     }
 
+    // Creates a new CommunicationEndpoint and stars listening
     private void connect() throws IOException
     {
         comm = new CommunicationEndpoint(hostname, port);
         listenToServer();
     }
 
+    // Button and TextField method that handles Client messages to the Server after a "J_OK" is received
+    // (Gets set when the "joinOK" method have been run)
+    private void trySend()
+    {
+        try
+        {
+            sendMessage(clientApp.getInput().getText());
+        }
+        catch (IOException ex)
+        {
+            ex.printStackTrace();
+        }
+        finally
+        {
+            clientApp.getInput().clear(); // Clears the ClientApp TextField when message is sent
+        }
+    }
 
-    // Actions
+    // **** ACTIONS ****
+
+    // Appends a succesfull "JOIN" message to ClientApp TextArea
+    // and changes action of Button and TextField to the "trySend" method
     private void joinOk()
     {
         clientApp.appendToMessageLog("You've joined the server as " + name);
@@ -39,27 +68,32 @@ public class ClientEndpoint
         // ... Here we call FX in client to set the action
         clientApp.getSubmit().setOnAction(e ->
         {
-            try
+            trySend();
+
+        });
+
+        //
+        clientApp.getInput().setOnKeyPressed(new EventHandler<KeyEvent>()
+        {
+            @Override
+            public void handle(KeyEvent event)
             {
-                sendMessage(clientApp.getInput().getText());
-            }
-            catch (IOException ex)
-            {
-                ex.printStackTrace();
+                if (event.getCode() == KeyCode.ENTER)
+                    trySend();
             }
         });
     }
 
+    // Resets user name to null and output "Error" messages to ClientApp TextArea
+    // (Does not change action of Button or TextField - still "tryJoin" method
     private void joinError(String errorMessage)
     {
-        Platform.runLater(() ->
-        {
             name = null;
             clientApp.appendToMessageLog("You failed to join the server due to: \n");
             clientApp.appendToMessageLog(errorMessage);
-        });
     }
 
+    // Method that sends Client message to Server after the Client is logged in
     private void sendMessage(String message) throws IOException
     {
         String msg = ProtocolHandler.packMessage(name, message);
@@ -67,39 +101,48 @@ public class ClientEndpoint
         comm.sendData(msg);
     }
 
+    // Appends (DATA) message to ClientApp TextArea
     private void printMessage(String name, String message)
     {
         clientApp.appendToMessageLog(name + ": " + message);
     }
 
+    // Appends list of users (LIST protocol message) to ClientApp TextArea
     private void printUsers(String listOfUsers)
     {
         clientApp.appendToMessageLog("Users Online: " + listOfUsers);
     }
 
-    // Receiving
-    private void handleProtocol(String data) {
-        String[] protocol = ProtocolHandler.unPack(data);
+    // Method to act upon the protocol message received from Server
+    private void handleProtocol(String data)
+    {
+        String[] protocol = ProtocolHandler.unPack(data); // I (JONAS) don't get this method ... equals "split" method
 
-        switch (protocol[0]) {
+        switch (protocol[0])
+        {
             case ProtocolHandler.JOIN_OK:
                 joinOk();
                 break;
             case ProtocolHandler.JOIN_ERR:
             {
-                if (protocol.length == 2 && protocol[1] == ProtocolHandler.ERR_NAME_TAKEN)
-                    joinError(name + " is already taken.");
-                else if (protocol.length == 3 && protocol[1] == ProtocolHandler.ERR_NAME_LENGTH)
-                    joinError(name + " is too long, max nr of characters is " + protocol[2]);
+                joinError("Name \"" + name + "\" is already taken.");
+//                if (protocol.length == 2 && protocol[1].equals(ProtocolHandler.ERR_NAME_TAKEN))
+//                    joinError("Name \"" + name + "\" is already taken.");
+//                else if (protocol.length == 3 && protocol[1].equals(ProtocolHandler.ERR_NAME_LENGTH))
+//                    joinError("\"" + name + "\" is too long, max nr of characters is " + protocol[2]);
             }
                 break;
             case ProtocolHandler.MSG:
                 if (protocol.length == 3)
-                    printMessage(protocol[1], protocol[2]);
+                {
+                    printMessage(protocol[1], protocol[2]); // Prints name and message to ClientApp TextArea
+                }
                 break;
             case ProtocolHandler.LIST:
                 if (protocol.length > 1)
+                {
                     printUsers(protocol[1]);
+                }
                     //printUsers(protocol);
                 break;
             default:
@@ -109,37 +152,59 @@ public class ClientEndpoint
         }
     }
 
+    // Creates a new Thread for listening for messages coming from Server while CommunicationEndpoint is connected
     private void listenToServer()
     {
-            listener = new Thread(() ->
+        listener = new Thread(() ->
+        {
+            listener.setName("Endpoint Listener Thread");
+
+            // While Socket is connected and not shutdown then read messages from Server
+            while (comm.isConnected())
             {
+                System.out.println("Still listening");
 
                 try
                 {
-                    while (comm.isConnected())
-                    {
-                        String data = comm.receiveData();
+                    String data = comm.receiveData(); // Reads messages from InputStream
 
-                        handleProtocol(data);
-                    }
+                    handleProtocol(data); // Handles the received protocol
+
                 }
+                // Closing the socket, throws and exceptipon wich is caught here
+                // So from here it actually stops the inputstream from receiving data
+                // And can exit the thread
                 catch (IOException ex)
                 {
+                    //listener.interrupt();
+                    System.out.println("Listener thread broke");
                     ex.printStackTrace();
                 }
-            });
 
-            listener.start();
+            }
+        });
+        listener.start();
+
     }
 
+    public boolean isConnected()
+    {
+        if (comm != null)
+            return comm.isConnected();
 
-    // Sending
+        return false;
+    }
+
+    // Creates new CommunicationEndpoint
+    // and packs and sends "JOIN" messages while CommunicationEndpoint is connected (i.e. Socket not shutdown)
     public void joinServer(String name) throws IOException
     {
-        if (name != "")
+        if (name != "") // Unnecessary check ... (already done in CharValidation)
         {
+            // Creates new CommunicationEndpoint and start to listen via new Thread
             connect();
 
+            // Sends the "JOIN" messages
             if (comm.isConnected())
             {
                 String joinProtocol = ProtocolHandler.packJoin(name, comm.getLocalIp(), "" + comm.getLocalPort());
@@ -150,17 +215,25 @@ public class ClientEndpoint
 
     }
 
-    // Sends a QUIT protocol to server and disconnects
+    // Sends a QUIT protocol message to server and closes down socket
     public void leaveServer() throws IOException
     {
         // Sends QUIt protocol
+//        try
+//        {
+            //System.out.println(listener.getThreadGroup().toString());
+//        }
+//        catch (InterruptedException ex)
+//        {
+//            System.out.println("Listener thread interrupted");
+//        }
         comm.sendData(ProtocolHandler.packQuit());
 
         try
         {
             // Stops the listenerThread
             //stopListening();
-            listener.interrupt();
+            //listener.interrupt();
 
             // Closes the socket connection
             comm.disconnect();
@@ -176,6 +249,29 @@ public class ClientEndpoint
 //            clientApp.appendToMessageLog("EXCEPTION: Listener thread join interupted");
 //        }
     }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -194,7 +290,6 @@ public class ClientEndpoint
 //            clientApp.appendToMessageLog(list);
 //        });
 //    }
-}
 
 
 //     switch (protocolValues[0])

@@ -34,13 +34,13 @@ public class CommunicationEndpoint
         return host.getLocalPort();
     }
 
+    // Checks whether Socket is connected and whether the Socket is not shutdown
     public boolean isConnected()
     {
-        return host.isConnected();
+        return host.isConnected() && !host.isInputShutdown();
     }
 
-
-
+    // Creates new Input and Output Streams from this CommunicationEndpoint / Socket
     private void initializeStreams() throws IOException
     {
         if (host != null)
@@ -50,14 +50,14 @@ public class CommunicationEndpoint
         }
     }
 
-
-
+    // Send the messages from Client to the Server and flushes the OutputStream
     public void sendData(String message) throws IOException
     {
         out.writeUTF(message);
         out.flush();
     }
 
+    // Reads messages from the input stream
     public String receiveData() throws IOException
     {
         return in.readUTF();
@@ -67,8 +67,7 @@ public class CommunicationEndpoint
     {
         if (!host.isClosed())
         {
-            in.close();
-            out.close();
+            host.shutdownInput();
             host.close();
         }
     }

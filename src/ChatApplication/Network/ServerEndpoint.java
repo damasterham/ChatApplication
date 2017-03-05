@@ -1,8 +1,5 @@
 package ChatApplication.Network;
 
-import ChatApplication.Application.ServerApplication;
-import sun.plugin.viewer.IExplorerPluginObject;
-
 import java.io.IOException;
 import java.net.Socket;
 
@@ -88,4 +85,5 @@ public class ServerEndpoint
     {
         comm.disconnect();
     }
+
 }

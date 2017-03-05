@@ -3,12 +3,10 @@ package ChatApplication.Protocol;
 import java.io.IOException;
 import java.io.StringReader;
 
-/**
- * Created by DaMasterHam on 23-02-2017.
- */
 public class ProtocolHandler
 {
     public static final int MAX_NAME_LENGTH = 12;
+    public static final int MAX_MSG_LENGTH = 250;
 
     // Protocol Syntax
     private static final int DELIMITER = (int)' ';
@@ -82,9 +80,13 @@ public class ProtocolHandler
                 ch = reader.read();
 
                 if (ch == -1)
+                {
                     break;
+                }
                 else if (ch == START_PARA) // Enter inside parameter
+                {
                     inParameter = true;
+                }
                 else if (ch == END_PARA) // Exit parameter
                     inParameter = false;
                 else if (ch == DELIMITER && !inParameter) // Split on space outside of parameter
@@ -113,6 +115,8 @@ public class ProtocolHandler
         return null;
     }
 
+    // Method to pack the message in the correct protocol format
+    // (The "String ..." parameter is stinking awesome! :) )
     private static String pack(String action, String... parameters)
     {
         String result = action;
@@ -125,6 +129,7 @@ public class ProtocolHandler
         return result;
     }
 
+    // Packs the messages in the correct "JOIN" format
     public static String packJoin(String name, String ip, String port)
     {
         return pack(JOIN, name, ip, port);
@@ -146,6 +151,7 @@ public class ProtocolHandler
 
     }
 
+    // Packs (DATA) messages with name and message along with it
     public static String packMessage(String name, String message)
     {
         return pack(MSG, name, message);
